@@ -1,1 +1,2102 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz Dam Ular Tajwid - Multiplayer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Poppins:wght@400;600;700&display=swap');
+        
+        .arabic-text {
+            font-family: 'Amiri', serif;
+            font-size: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .board-square {
+            width: 100%;
+            aspect-ratio: 1;
+            min-height: 30px;
+            border: 2px solid #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-weight: bold;
+            font-size: 10px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        @media (min-width: 640px) {
+            .board-square {
+                font-size: 12px;
+                min-height: 40px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .board-square {
+                font-size: 14px;
+                min-height: 60px;
+            }
+        }
+        
+        .board-square:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .snake {
+            background: linear-gradient(135deg, #f87171, #dc2626, #991b1b);
+            color: white;
+            border: 2px solid #7f1d1d;
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        .ladder {
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6, #7c3aed);
+            color: white;
+            border: 2px solid #5b21b6;
+            box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        .player-token {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid white;
+            position: absolute;
+            font-size: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            z-index: 10;
+        }
+        
+        @media (min-width: 640px) {
+            .player-token {
+                width: 16px;
+                height: 16px;
+                font-size: 8px;
+                border: 1.5px solid white;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .player-token {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+                border: 2px solid white;
+            }
+        }
+        
+        .dice {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+            border: 3px solid #92400e;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(217, 119, 6, 0.4);
+            color: white;
+        }
+        
+        @media (min-width: 640px) {
+            .dice {
+                width: 70px;
+                height: 70px;
+                font-size: 1.75rem;
+                border-radius: 10px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .dice {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+                border: 3px solid #374151;
+                border-radius: 12px;
+            }
+        }
+        
+        .dice:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 16px rgba(217, 119, 6, 0.6);
+            background: linear-gradient(135deg, #f59e0b, #d97706, #b45309);
+        }
+        
+        .dice.rolling {
+            animation: roll 1s ease-in-out;
+        }
+        
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .bounce {
+            animation: bounce 0.5s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .celebration {
+            animation: celebrate 1s ease-out;
+        }
+        
+        @keyframes celebrate {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(5deg); }
+            50% { transform: scale(1.2) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4); }
+            50% { box-shadow: 0 6px 12px rgba(220, 38, 38, 0.6); }
+            100% { box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4); }
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4); }
+            100% { box-shadow: 0 6px 16px rgba(139, 92, 246, 0.8); }
+        }
+        
+        .special-square {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Reduced animation frequency for better performance */
+        .special-square::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg);
+            animation: shine 6s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        }
+        
+        @keyframes gradient-x {
+            0%, 100% {
+                background-size: 200% 200%;
+                background-position: left center;
+            }
+            50% {
+                background-size: 200% 200%;
+                background-position: right center;
+            }
+        }
+        
+        .animate-gradient-x {
+            animation: gradient-x 20s ease infinite;
+        }
+        
+        /* Profile picture selection styles */
+        .profile-category-btn {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+        
+        .profile-category-btn.active {
+            border-color: #3b82f6;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .profile-picture-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .profile-picture-option:hover {
+            transform: scale(1.1);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .profile-picture-option.selected {
+            border-color: #10b981;
+            background: #d1fae5;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .player-setup-card {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95), 
+                rgba(255, 240, 245, 0.95), 
+                rgba(240, 248, 255, 0.95));
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 14px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-setup-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, #ff0080, #00ff80, #8000ff, #ff8000);
+            z-index: -1;
+            border-radius: 20px;
+            padding: 3px;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+        }
+        
+        .player-setup-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 0, 128, 0.3);
+        }
+
+        /* Ultra vibrant animated background */
+        .cheerful-bg {
+            background: linear-gradient(-45deg, 
+                #ff0080, #00ff80, #8000ff, #ff8000, 
+                #0080ff, #ff4080, #80ff00, #4080ff,
+                #ff0040, #40ff80, #8040ff, #ff8040);
+            background-size: 600% 600%;
+            animation: ultraVibrantGradient 12s ease infinite;
+        }
+        
+        @keyframes ultraVibrantGradient {
+            0% { 
+                background-position: 0% 50%;
+                filter: hue-rotate(0deg) saturate(1.5) brightness(1.1);
+            }
+            25% { 
+                background-position: 100% 0%;
+                filter: hue-rotate(90deg) saturate(1.8) brightness(1.2);
+            }
+            50% { 
+                background-position: 100% 100%;
+                filter: hue-rotate(180deg) saturate(2) brightness(1.3);
+            }
+            75% { 
+                background-position: 0% 100%;
+                filter: hue-rotate(270deg) saturate(1.8) brightness(1.2);
+            }
+            100% { 
+                background-position: 0% 50%;
+                filter: hue-rotate(360deg) saturate(1.5) brightness(1.1);
+            }
+        }
+        
+        /* Enhanced floating elements with vibrant effects */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .floating-element {
+            position: absolute;
+            font-size: 2.5rem;
+            animation: vibrantFloat 8s ease-in-out infinite;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+            will-change: transform;
+        }
+        
+        @keyframes vibrantFloat {
+            0% { 
+                transform: translateY(0px) rotate(0deg) scale(1);
+                filter: drop-shadow(0 0 10px rgba(255, 0, 128, 0.6)) hue-rotate(0deg);
+            }
+            25% { 
+                transform: translateY(-30px) rotate(90deg) scale(1.1);
+                filter: drop-shadow(0 0 15px rgba(0, 255, 128, 0.6)) hue-rotate(90deg);
+            }
+            50% { 
+                transform: translateY(-40px) rotate(180deg) scale(1.2);
+                filter: drop-shadow(0 0 20px rgba(128, 0, 255, 0.6)) hue-rotate(180deg);
+            }
+            75% { 
+                transform: translateY(-30px) rotate(270deg) scale(1.1);
+                filter: drop-shadow(0 0 15px rgba(255, 128, 0, 0.6)) hue-rotate(270deg);
+            }
+            100% { 
+                transform: translateY(0px) rotate(360deg) scale(1);
+                filter: drop-shadow(0 0 10px rgba(255, 0, 128, 0.6)) hue-rotate(360deg);
+            }
+        }
+        
+        /* Advanced performance optimizations */
+        * {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+        
+        /* GPU-accelerated animations */
+        .board-square, .dice, .floating-element {
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        
+        /* Optimized snake animation */
+        @keyframes optimizedPulse {
+            0%, 100% { 
+                box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4);
+                transform: translateZ(0) scale(1);
+            }
+            50% { 
+                box-shadow: 0 6px 12px rgba(220, 38, 38, 0.6);
+                transform: translateZ(0) scale(1.02);
+            }
+        }
+        
+        /* Optimized ladder animation */
+        @keyframes optimizedGlow {
+            0% { 
+                box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+                transform: translateZ(0) scale(1);
+            }
+            100% { 
+                box-shadow: 0 6px 16px rgba(139, 92, 246, 0.8);
+                transform: translateZ(0) scale(1.03);
+            }
+        }
+        
+        /* Apply optimized animations */
+        .snake {
+            animation: optimizedPulse 3s ease-in-out infinite;
+        }
+        
+        .ladder {
+            animation: optimizedGlow 3s ease-in-out infinite alternate;
+        }
+        
+        /* Reduced motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            .cheerful-bg {
+                animation: none;
+                background: linear-gradient(-45deg, #ff0080, #00ff80, #8000ff, #ff8000);
+            }
+            
+            .floating-element {
+                animation: none;
+                transform: translateY(-10px);
+            }
+            
+            .snake, .ladder {
+                animation: none;
+            }
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .profile-picture-option {
+                width: 35px;
+                height: 35px;
+                font-size: 1.2rem;
+            }
+            
+            /* Reduce background animation complexity on mobile */
+            .cheerful-bg {
+                background-size: 300% 300%;
+                animation-duration: 20s;
+            }
+            
+            /* Simplify floating elements on mobile */
+            .floating-element {
+                animation-duration: 12s;
+                font-size: 2rem;
+            }
+            
+            /* Disable intensive animations on low-end devices */
+            .snake, .ladder {
+                animation-duration: 6s;
+            }
+        }
+        
+        /* Ultra-low power mode */
+        @media (max-width: 480px) {
+            .cheerful-bg {
+                animation: none;
+                background: linear-gradient(-45deg, #ff0080, #00ff80, #8000ff, #ff8000);
+            }
+            
+            .floating-element {
+                animation: none;
+                opacity: 0.5;
+            }
+        }
+        
+        /* Optimize hover effects */
+        @media (hover: hover) {
+            .board-square:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            }
+            
+            .dice:hover {
+                transform: scale(1.1) rotate(5deg);
+                box-shadow: 0 8px 16px rgba(217, 119, 6, 0.6);
+                background: linear-gradient(135deg, #f59e0b, #d97706, #b45309);
+            }
+        }
+        
+        /* Remove hover effects on touch devices */
+        @media (hover: none) {
+            .board-square:hover,
+            .dice:hover,
+            .profile-picture-option:hover {
+                transform: none;
+                box-shadow: initial;
+                background: initial;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-['Poppins'] cheerful-bg">
+    <!-- Enhanced vibrant floating elements -->
+    <div class="floating-elements">
+        <div class="floating-element" style="top: 10%; left: 10%; animation-delay: 0s;">🌟</div>
+        <div class="floating-element" style="top: 20%; left: 80%; animation-delay: 1s;">🎈</div>
+        <div class="floating-element" style="top: 60%; left: 15%; animation-delay: 2s;">🌈</div>
+        <div class="floating-element" style="top: 80%; left: 70%; animation-delay: 3s;">✨</div>
+        <div class="floating-element" style="top: 30%; left: 60%; animation-delay: 4s;">🎊</div>
+        <div class="floating-element" style="top: 70%; left: 30%; animation-delay: 5s;">🎉</div>
+        <div class="floating-element" style="top: 15%; left: 45%; animation-delay: 1.5s;">🌸</div>
+        <div class="floating-element" style="top: 85%; left: 20%; animation-delay: 2.5s;">🦋</div>
+        <div class="floating-element" style="top: 40%; left: 85%; animation-delay: 3.5s;">🌺</div>
+        <div class="floating-element" style="top: 55%; left: 5%; animation-delay: 4.5s;">🎭</div>
+        <div class="floating-element" style="top: 25%; left: 25%; animation-delay: 6s;">💎</div>
+        <div class="floating-element" style="top: 75%; left: 75%; animation-delay: 7s;">🔥</div>
+        <div class="floating-element" style="top: 35%; left: 90%; animation-delay: 0.5s;">⚡</div>
+        <div class="floating-element" style="top: 65%; left: 50%; animation-delay: 1.8s;">🌙</div>
+        <div class="floating-element" style="top: 5%; left: 65%; animation-delay: 2.8s;">☀️</div>
+        <div class="floating-element" style="top: 90%; left: 40%; animation-delay: 3.8s;">🎪</div>
+        <div class="floating-element" style="top: 45%; left: 12%; animation-delay: 4.8s;">🎨</div>
+        <div class="floating-element" style="top: 18%; left: 72%; animation-delay: 5.8s;">🎵</div>
+    </div>
+    <!-- Admin Login Screen -->
+    <div id="admin-login-screen" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 max-w-md w-full">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">🔐 Log Masuk Admin</h2>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Username:</label>
+                <input type="text" id="admin-username" class="w-full p-3 border-2 border-gray-300 rounded-xl" placeholder="Masukkan username">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Password:</label>
+                <input type="password" id="admin-password" class="w-full p-3 border-2 border-gray-300 rounded-xl" placeholder="Masukkan password">
+            </div>
+            <div id="admin-login-error" class="hidden text-red-600 text-sm text-center mb-4">Username atau password salah!</div>
+            <div class="flex space-x-3">
+                <button onclick="closeAdminLogin()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl">
+                    Batal
+                </button>
+                <button onclick="adminLogin()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-xl">
+                    Log Masuk
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden min-h-screen cheerful-bg">
+        <!-- Admin Header -->
+        <div class="bg-white/90 backdrop-blur-sm shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-gray-800">👨‍💼 Panel Admin - Dam Ular Tajwid</h1>
+                    <button onclick="logoutAdmin()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl">
+                        Log Keluar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-4 py-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Question Management -->
+                <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">📝 Pengurusan Soalan</h2>
+                    
+                    <!-- Add/Edit Question Form -->
+                    <div class="mb-6 p-4 bg-blue-50 rounded-2xl">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-3" id="question-form-title">Tambah Soalan Baru</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Soalan:</label>
+                                <input type="text" id="question-input" class="w-full p-2 border border-gray-300 rounded-lg text-sm" placeholder="Contoh: Apakah jenis mad dalam ayat berikut?">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Teks Arab:</label>
+                                <input type="text" id="arabic-input" class="w-full p-2 border border-gray-300 rounded-lg text-sm arabic-text" placeholder="وَالسَّمَآءِ">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Jawapan Betul:</label>
+                                <select id="correct-answer" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                                    <option value="mad-badal">Mad Badal</option>
+                                    <option value="mad-silah">Mad Silah</option>
+                                    <option value="mad-iwad">Mad Iwad</option>
+                                    <option value="bukan-mad">Bukan Mad</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Penjelasan:</label>
+                                <textarea id="explanation-input" class="w-full p-2 border border-gray-300 rounded-lg text-sm" rows="2" placeholder="Mad Badal berlaku apabila hamzah bertemu dengan alif mad."></textarea>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="saveQuestion()" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+                                    <span id="save-btn-text">💾 Simpan</span>
+                                </button>
+                                <button onclick="cancelEdit()" id="cancel-edit-btn" class="hidden flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+                                    ❌ Batal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Questions List -->
+                    <div class="max-h-96 overflow-y-auto">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-3">Senarai Soalan (<span id="question-count">10</span>)</h3>
+                        <div id="questions-list" class="space-y-2">
+                            <!-- Questions will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Settings -->
+                <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">⚙️ Tetapan Permainan</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-green-50 rounded-2xl">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-3">Bilangan Pemain</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-1">Minimum:</label>
+                                    <input type="number" id="min-players" min="2" max="10" value="2" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-1">Maksimum:</label>
+                                    <input type="number" id="max-players" min="2" max="10" value="10" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                            </div>
+                            <button onclick="saveGameSettings()" class="w-full mt-3 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+                                💾 Simpan Tetapan
+                            </button>
+                        </div>
+
+                        <div class="p-4 bg-yellow-50 rounded-2xl">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-3">Statistik</h3>
+                            <div class="text-sm text-gray-600 space-y-1">
+                                <div>Jumlah Soalan: <span class="font-bold" id="total-questions">10</span></div>
+                                <div>Pemain Minimum: <span class="font-bold" id="current-min-players">2</span></div>
+                                <div>Pemain Maksimum: <span class="font-bold" id="current-max-players">10</span></div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-purple-50 rounded-2xl">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-3">Tindakan</h3>
+                            <div class="space-y-2">
+                                <button onclick="exportQuestions()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+                                    📤 Eksport Soalan
+                                </button>
+                                <button onclick="resetToDefault()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+                                    🔄 Reset ke Default
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-white/95 via-yellow-50/95 to-pink-50/95 backdrop-blur-lg rounded-3xl shadow-2xl p-8 max-w-2xl w-full border-4 border-yellow-300 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">🌟 🐍 Dam Ular Tajwid 🪜 🌟</h1>
+                <button onclick="showAdminLogin()" class="text-xs bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-700 px-3 py-2 rounded-full shadow-lg">
+                    👨‍💼 Admin
+                </button>
+            </div>
+            <div class="mb-6">
+                <label class="block text-lg font-semibold text-gray-700 mb-3">Bilangan Pemain:</label>
+                <select id="player-count" class="w-full p-3 border-2 border-gray-300 rounded-xl text-lg">
+                    <!-- Options will be populated by JavaScript based on admin settings -->
+                </select>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-3">Tetapan Pemain:</h3>
+                <div id="player-setup-container" class="space-y-3">
+                    <!-- Player setup cards will be generated here -->
+                </div>
+            </div>
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                🎮 Mula Permainan
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden min-h-screen">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-yellow-300/90 via-pink-300/90 to-purple-300/90 backdrop-blur-sm shadow-2xl border-b-4 border-yellow-400">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center mb-2">
+                    <button onclick="backToSetup()" class="bg-white/90 hover:bg-white text-gray-700 font-bold py-2 px-4 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2">
+                        <span>⬅️</span>
+                        <span class="hidden sm:inline">Kembali</span>
+                    </button>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 drop-shadow-lg flex-1">🌟 🐍 Dam Ular Tajwid 🪜 🌟</h1>
+                    <button onclick="toggleSound()" id="sound-toggle" class="bg-white/90 hover:bg-white text-gray-700 font-bold py-2 px-4 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2">
+                        <span id="sound-icon">🔊</span>
+                        <span class="hidden sm:inline" id="sound-text">Bunyi</span>
+                    </button>
+                </div>
+                <div class="flex justify-center items-center">
+                    <div class="text-center bg-white/80 rounded-full px-4 py-2 shadow-lg">
+                        <div class="text-lg font-bold text-purple-700" id="current-player-display">Giliran: Pemain 1</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-2 py-4">
+            <!-- Mobile Layout: Stack vertically -->
+            <div class="block lg:hidden space-y-4">
+                <!-- Current Player Display (Mobile) -->
+                <div class="bg-gradient-to-r from-yellow-200/80 to-pink-200/80 backdrop-blur-md rounded-2xl shadow-lg p-3 border-2 border-yellow-300">
+                    <div class="text-center text-lg font-bold text-purple-700" id="current-player-mobile">Giliran: Pemain 1</div>
+                </div>
+                
+                <!-- Game Board (Mobile) -->
+                <div class="bg-gradient-to-br from-white/90 via-blue-50/90 to-purple-50/90 backdrop-blur-md rounded-2xl shadow-lg p-3 border-2 border-blue-200">
+                    <div id="game-board-mobile" class="grid grid-cols-10 gap-0.5 mb-3">
+                        <!-- Board will be generated by JavaScript -->
+                    </div>
+                    
+                    <!-- Dice and Controls (Mobile) -->
+                    <div class="text-center">
+                        <div id="dice-mobile" class="dice mx-auto mb-3" onclick="rollDice()">
+                            <span id="dice-value-mobile">🎲</span>
+                        </div>
+                        <button id="roll-btn-mobile" onclick="rollDice()" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-2 px-4 rounded-xl shadow-lg text-sm">
+                            🎲 Baling Dadu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Players List (Mobile) -->
+                <div class="bg-gradient-to-br from-white/90 via-green-50/90 to-yellow-50/90 backdrop-blur-md rounded-2xl shadow-lg p-3 border-2 border-green-200">
+                    <h3 class="text-lg font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-3">👥 Pemain</h3>
+                    <div id="players-list-mobile" class="grid grid-cols-2 gap-2">
+                        <!-- Players will be generated by JavaScript -->
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- Desktop Layout: Side by side -->
+            <div class="hidden lg:grid lg:grid-cols-3 gap-6">
+                <!-- Game Board -->
+                <div class="lg:col-span-2">
+                    <div class="bg-gradient-to-br from-white/90 via-blue-50/90 to-purple-50/90 backdrop-blur-md rounded-3xl shadow-2xl p-6 border-4 border-blue-200">
+                        <div id="game-board" class="grid grid-cols-10 gap-1 mb-4">
+                            <!-- Board will be generated by JavaScript -->
+                        </div>
+                        
+                        <!-- Dice and Controls -->
+                        <div class="text-center">
+                            <div class="mb-4">
+                                <div id="dice" class="dice mx-auto mb-4" onclick="rollDice()">
+                                    <span id="dice-value">🎲</span>
+                                </div>
+                                <button id="roll-btn" onclick="rollDice()" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                                    🎲 Baling Dadu
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player Info and Question Panel -->
+                <div class="space-y-6">
+                    <!-- Players List -->
+                    <div class="bg-gradient-to-br from-white/90 via-green-50/90 to-yellow-50/90 backdrop-blur-md rounded-3xl shadow-2xl p-6 border-4 border-green-200">
+                        <h3 class="text-xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">👥 Pemain</h3>
+                        <div id="players-list" class="space-y-3">
+                            <!-- Players will be generated by JavaScript -->
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Screen -->
+    <div id="winner-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-8 text-center max-w-md w-full border-4 border-yellow-300">
+            <div class="celebration">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">🎉 Tahniah! 🎉</h2>
+                <div class="text-6xl mb-4">👑</div>
+                <p class="text-2xl text-gray-700 mb-4">Pemenang:</p>
+                <p class="text-3xl font-bold text-green-600 mb-6" id="winner-name">Pemain 1</p>
+                <button onclick="restartGame()" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                    🔄 Main Semula
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Popup Overlay -->
+    <div id="question-overlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-6 max-w-md w-full mx-4 transform transition-all duration-300 border-4 border-purple-300">
+            <div class="text-center mb-4">
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">🎯 Soalan Tajwid</h3>
+                <div class="text-lg font-semibold text-purple-600" id="current-player-question">Giliran: Pemain 1</div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-4 mb-4">
+                <p class="text-sm text-gray-700 mb-3 text-center" id="question-text-popup">Apakah jenis mad dalam ayat berikut?</p>
+                <div class="arabic-text text-2xl text-center text-gray-800 bg-white rounded-xl p-4 shadow-inner" id="arabic-text-popup">
+                    وَالسَّمَآءِ
+                </div>
+            </div>
+            
+            <div class="space-y-3 mb-4" id="options-container-popup">
+                <button class="option-btn-popup w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105" data-answer="mad-badal">
+                    Mad Badal
+                </button>
+                <button class="option-btn-popup w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105" data-answer="mad-silah">
+                    Mad Silah
+                </button>
+                <button class="option-btn-popup w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105" data-answer="mad-iwad">
+                    Mad Iwad
+                </button>
+                <button class="option-btn-popup w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105" data-answer="bukan-mad">
+                    Bukan Mad
+                </button>
+            </div>
+            
+            <div id="feedback-popup" class="hidden text-center p-3 rounded-xl mb-4"></div>
+            
+            <button id="continue-btn-popup" class="hidden w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                Teruskan ➡️
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Sound Effects System
+        class SoundManager {
+            constructor() {
+                this.sounds = {};
+                this.isMuted = false;
+                this.volume = 0.7;
+                this.initializeSounds();
+            }
+            
+            initializeSounds() {
+                // Create audio contexts for different sound effects
+                this.sounds = {
+                    diceRoll: this.createBeepSound([400, 500, 600], 0.1, 'square'),
+                    playerMove: this.createBeepSound([800, 900, 1000], 0.08, 'sine'),
+                    celebration: this.createMelody([523, 659, 784, 1047], 0.3, 'sine'),
+                    snake: this.createBeepSound([300, 250, 200], 0.2, 'sawtooth'),
+                    ladder: this.createBeepSound([400, 600, 800, 1000], 0.15, 'triangle'),
+                    correct: this.createBeepSound([800, 1000], 0.2, 'sine'),
+                    wrong: this.createBeepSound([300, 200], 0.3, 'square'),
+                    buttonClick: this.createBeepSound([600], 0.05, 'sine')
+                };
+            }
+            
+            createBeepSound(frequencies, duration, waveType = 'sine') {
+                return () => {
+                    if (this.isMuted) return;
+                    
+                    try {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        let currentTime = audioContext.currentTime;
+                        
+                        frequencies.forEach((freq, index) => {
+                            const oscillator = audioContext.createOscillator();
+                            const gainNode = audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(audioContext.destination);
+                            
+                            oscillator.frequency.setValueAtTime(freq, currentTime);
+                            oscillator.type = waveType;
+                            
+                            gainNode.gain.setValueAtTime(0, currentTime);
+                            gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, currentTime + 0.01);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + duration);
+                            
+                            oscillator.start(currentTime);
+                            oscillator.stop(currentTime + duration);
+                            
+                            currentTime += duration * 0.3;
+                        });
+                    } catch (error) {
+                        console.log('Audio not supported');
+                    }
+                };
+            }
+            
+            createMelody(notes, noteDuration, waveType = 'sine') {
+                return () => {
+                    if (this.isMuted) return;
+                    
+                    try {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        let currentTime = audioContext.currentTime;
+                        
+                        notes.forEach((freq, index) => {
+                            const oscillator = audioContext.createOscillator();
+                            const gainNode = audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(audioContext.destination);
+                            
+                            oscillator.frequency.setValueAtTime(freq, currentTime);
+                            oscillator.type = waveType;
+                            
+                            gainNode.gain.setValueAtTime(0, currentTime);
+                            gainNode.gain.linearRampToValueAtTime(this.volume * 0.2, currentTime + 0.02);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + noteDuration);
+                            
+                            oscillator.start(currentTime);
+                            oscillator.stop(currentTime + noteDuration);
+                            
+                            currentTime += noteDuration * 0.8;
+                        });
+                    } catch (error) {
+                        console.log('Audio not supported');
+                    }
+                };
+            }
+            
+            play(soundName) {
+                if (this.sounds[soundName] && !this.isMuted) {
+                    this.sounds[soundName]();
+                }
+            }
+            
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                return this.isMuted;
+            }
+            
+            setVolume(volume) {
+                this.volume = Math.max(0, Math.min(1, volume));
+            }
+        }
+        
+        // Initialize sound manager
+        const soundManager = new SoundManager();
+
+        // Admin credentials
+        const ADMIN_USERNAME = "Admin";
+        const ADMIN_PASSWORD = "admin";
+
+        // Game settings
+        let gameSettings = {
+            minPlayers: 2,
+            maxPlayers: 10
+        };
+
+        // Admin state
+        let isAdminLoggedIn = false;
+        let editingQuestionIndex = -1;
+
+        let questions = [
+            {
+                question: "Apakah jenis mad dalam ayat berikut?",
+                arabic: "وَالسَّمَآءِ",
+                correct: "mad-badal",
+                explanation: "Mad Badal berlaku apabila hamzah bertemu dengan alif mad."
+            },
+            {
+                question: "Kenalpasti jenis mad dalam perkataan ini:",
+                arabic: "فِيهِ هُدًى",
+                correct: "mad-silah",
+                explanation: "Mad Silah berlaku pada huruf ha dhamir yang disambung."
+            },
+            {
+                question: "Apakah mad yang terdapat dalam ayat ini?",
+                arabic: "وَلَا الضَّآلِّينَ",
+                correct: "mad-badal",
+                explanation: "Mad Badal berlaku dalam perkataan 'الضآلين'."
+            },
+            {
+                question: "Jenis mad apakah yang terdapat di sini?",
+                arabic: "قَالُوا۟ ءَامَنَّا",
+                correct: "mad-badal",
+                explanation: "Mad Badal berlaku pada 'ءامنا'."
+            },
+            {
+                question: "Kenalpasti mad dalam ayat berikut:",
+                arabic: "لَهُ ٱلْمُلْكُ",
+                correct: "mad-silah",
+                explanation: "Mad Silah berlaku pada 'لهُ'."
+            },
+            {
+                question: "Apakah jenis mad yang ada dalam perkataan ini?",
+                arabic: "جَآءَ",
+                correct: "mad-badal",
+                explanation: "Mad Badal berlaku dalam 'جاء'."
+            },
+            {
+                question: "Mad apakah yang terdapat di sini?",
+                arabic: "عَلَيْهِ ٱللَّهُ",
+                correct: "mad-silah",
+                explanation: "Mad Silah berlaku pada 'عليهِ'."
+            },
+            {
+                question: "Kenalpasti jenis mad dalam ayat ini:",
+                arabic: "سُوٓءً۬ا",
+                correct: "mad-iwad",
+                explanation: "Mad Iwad berlaku pada wakaf."
+            },
+            {
+                question: "Apakah mad yang terdapat dalam perkataan berikut?",
+                arabic: "شَيْـًٔا",
+                correct: "mad-iwad",
+                explanation: "Mad Iwad berlaku pada wakaf."
+            },
+            {
+                question: "Jenis mad apakah ini?",
+                arabic: "رَءُوفٌ",
+                correct: "mad-badal",
+                explanation: "Mad Badal berlaku dalam 'رءوف'."
+            }
+        ];
+
+        // Game state
+        let players = [];
+        let currentPlayerIndex = 0;
+        let gameBoard = [];
+        let diceRolled = false;
+        let questionActive = false;
+
+        // Board configuration
+        const boardSize = 100;
+        const snakes = {
+            16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78
+        };
+        const ladders = {
+            1: 38, 4: 14, 9: 21, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100
+        };
+
+        const playerColors = [
+            '#ef4444', '#3b82f6', '#10b981', '#f59e0b', 
+            '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
+            '#f97316', '#6366f1'
+        ];
+
+        // Profile pictures categories
+        const profilePictures = {
+            cars: ['🏎️', '🚗', '🚙', '🚕', '🚐', '🛻', '🏁', '🚓', '🚑', '🚒'],
+            animals: ['🐱', '🐶', '🦁', '🐯', '🐻', '🐼', '🐨', '🐸', '🐵', '🦊'],
+            characters: ['👑', '🤴', '👸', '🧙‍♂️', '🧙‍♀️', '🦸‍♂️', '🦸‍♀️', '🧚‍♂️', '🧚‍♀️', '🎭']
+        };
+
+        // ===== GAME SETUP FUNCTIONS =====
+        
+        function updatePlayerInputs() {
+            const count = parseInt(document.getElementById('player-count').value);
+            const container = document.getElementById('player-setup-container');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= count; i++) {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-setup-card';
+                playerCard.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-md font-bold text-gray-700">Pemain ${i}</h4>
+                        <div class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-2xl bg-white" id="selected-avatar-${i}">
+                            ${profilePictures.cars[0]}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Nama:</label>
+                        <input type="text" placeholder="Pemain ${i}" class="w-full p-2 border border-gray-300 rounded-lg text-sm" data-player="${i}" id="player-name-${i}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Kategori Avatar:</label>
+                        <div class="flex space-x-2 mb-3">
+                            <button class="profile-category-btn active text-xs" onclick="selectCategory(${i}, 'cars')" id="category-cars-${i}">
+                                🏎️ Kereta
+                            </button>
+                            <button class="profile-category-btn text-xs" onclick="selectCategory(${i}, 'animals')" id="category-animals-${i}">
+                                🐱 Binatang
+                            </button>
+                            <button class="profile-category-btn text-xs" onclick="selectCategory(${i}, 'characters')" id="category-characters-${i}">
+                                👑 Watak
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Pilih Avatar:</label>
+                        <div class="grid grid-cols-5 gap-2" id="avatar-options-${i}">
+                            <!-- Avatar options will be populated here -->
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(playerCard);
+                
+                // Initialize with cars category and first car selected
+                selectCategory(i, 'cars');
+                selectAvatar(i, profilePictures.cars[0]);
+            }
+        }
+
+        function selectCategory(playerIndex, category) {
+            // Update category buttons
+            ['cars', 'animals', 'characters'].forEach(cat => {
+                const btn = document.getElementById(`category-${cat}-${playerIndex}`);
+                if (btn) {
+                    if (cat === category) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            });
+            
+            // Update avatar options
+            const container = document.getElementById(`avatar-options-${playerIndex}`);
+            if (container) {
+                container.innerHTML = '';
+                
+                profilePictures[category].forEach(avatar => {
+                    const avatarBtn = document.createElement('div');
+                    avatarBtn.className = 'profile-picture-option';
+                    avatarBtn.textContent = avatar;
+                    avatarBtn.onclick = () => selectAvatar(playerIndex, avatar);
+                    container.appendChild(avatarBtn);
+                });
+                
+                // Auto-select first avatar in category
+                if (profilePictures[category].length > 0) {
+                    selectAvatar(playerIndex, profilePictures[category][0]);
+                }
+            }
+        }
+
+        function selectAvatar(playerIndex, avatar) {
+            // Update selected avatar display
+            const selectedDisplay = document.getElementById(`selected-avatar-${playerIndex}`);
+            if (selectedDisplay) {
+                selectedDisplay.textContent = avatar;
+            }
+            
+            // Update avatar options selection
+            const container = document.getElementById(`avatar-options-${playerIndex}`);
+            if (container) {
+                const options = container.querySelectorAll('.profile-picture-option');
+                options.forEach(option => {
+                    if (option.textContent === avatar) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+        }
+
+        function startGame() {
+            soundManager.play('buttonClick'); // Play button click sound
+            
+            const count = parseInt(document.getElementById('player-count').value);
+            
+            players = [];
+            for (let i = 1; i <= count; i++) {
+                const nameInput = document.getElementById(`player-name-${i}`);
+                const selectedAvatar = document.getElementById(`selected-avatar-${i}`);
+                
+                const name = nameInput.value.trim() || `Pemain ${i}`;
+                const avatar = selectedAvatar.textContent;
+                
+                players.push({
+                    name: name,
+                    position: 0,
+                    color: playerColors[i - 1],
+                    score: 0,
+                    avatar: avatar
+                });
+            }
+            
+            currentPlayerIndex = 0;
+            initializeBoard();
+            updatePlayersDisplay();
+            updateCurrentPlayerDisplay();
+            
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+        }
+
+        // ===== GAME LOGIC FUNCTIONS =====
+        
+        function initializeBoard() {
+            const board = document.getElementById('game-board');
+            const boardMobile = document.getElementById('game-board-mobile');
+            
+            // Clear both boards
+            if (board) board.innerHTML = '';
+            if (boardMobile) boardMobile.innerHTML = '';
+            gameBoard = [];
+            
+            // Create board squares (100 squares, snake and ladder pattern)
+            for (let row = 9; row >= 0; row--) {
+                for (let col = 0; col < 10; col++) {
+                    let squareNum;
+                    if (row % 2 === 1) {
+                        squareNum = row * 10 + (9 - col) + 1;
+                    } else {
+                        squareNum = row * 10 + col + 1;
+                    }
+                    
+                    // Create square for desktop
+                    const square = document.createElement('div');
+                    square.className = 'board-square bg-white';
+                    square.id = `square-${squareNum}`;
+                    
+                    // Create square for mobile
+                    const squareMobile = document.createElement('div');
+                    squareMobile.className = 'board-square bg-white';
+                    squareMobile.id = `square-mobile-${squareNum}`;
+                    
+                    // Add special squares
+                    if (snakes[squareNum]) {
+                        square.classList.add('snake', 'special-square');
+                        squareMobile.classList.add('snake', 'special-square');
+                        square.innerHTML = `${squareNum}<br><span style="font-size: 1.2em;">🐍</span>`;
+                        squareMobile.innerHTML = `${squareNum}<br><span style="font-size: 1.2em;">🐍</span>`;
+                    } else if (ladders[squareNum]) {
+                        square.classList.add('ladder', 'special-square');
+                        squareMobile.classList.add('ladder', 'special-square');
+                        square.innerHTML = `${squareNum}<br><span style="font-size: 1.2em;">🪜</span>`;
+                        squareMobile.innerHTML = `${squareNum}<br><span style="font-size: 1.2em;">🪜</span>`;
+                    } else {
+                        // Add alternating colors for regular squares
+                        if ((Math.floor((squareNum - 1) / 10) + (squareNum - 1)) % 2 === 0) {
+                            square.style.background = 'linear-gradient(135deg, #fef3c7, #fde68a)';
+                            squareMobile.style.background = 'linear-gradient(135deg, #fef3c7, #fde68a)';
+                        } else {
+                            square.style.background = 'linear-gradient(135deg, #ddd6fe, #c4b5fd)';
+                            squareMobile.style.background = 'linear-gradient(135deg, #ddd6fe, #c4b5fd)';
+                        }
+                        square.textContent = squareNum;
+                        squareMobile.textContent = squareNum;
+                    }
+                    
+                    if (board) board.appendChild(square);
+                    if (boardMobile) boardMobile.appendChild(squareMobile);
+                    gameBoard.push({desktop: square, mobile: squareMobile});
+                }
+            }
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        // Throttle function for performance optimization
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            }
+        }
+
+        function updatePlayersDisplay() {
+            // Throttle updates to prevent excessive DOM manipulation
+            const container = document.getElementById('players-list');
+            const containerMobile = document.getElementById('players-list-mobile');
+            
+            // Desktop players list - optimized DOM manipulation
+            if (container) {
+                const fragment = document.createDocumentFragment();
+                players.forEach((player, index) => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = `flex items-center justify-between p-3 rounded-xl ${index === currentPlayerIndex ? 'bg-yellow-100 border-2 border-yellow-400' : 'bg-gray-100'}`;
+                    
+                    playerDiv.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-lg" style="background-color: ${player.color}">
+                                ${player.avatar}
+                            </div>
+                            <span class="font-semibold">${player.name}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-600">Kedudukan: ${player.position}</div>
+                            <div class="text-sm text-gray-600">Markah: ${player.score}</div>
+                        </div>
+                    `;
+                    
+                    fragment.appendChild(playerDiv);
+                });
+                container.innerHTML = '';
+                container.appendChild(fragment);
+            }
+            
+            // Mobile players list - optimized DOM manipulation
+            if (containerMobile) {
+                const fragmentMobile = document.createDocumentFragment();
+                players.forEach((player, index) => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = `p-2 rounded-lg text-center ${index === currentPlayerIndex ? 'bg-yellow-100 border-2 border-yellow-400' : 'bg-gray-100'}`;
+                    
+                    playerDiv.innerHTML = `
+                        <div class="flex items-center justify-center mb-1">
+                            <div class="w-5 h-5 rounded-full border border-white mr-1 flex items-center justify-center text-xs" style="background-color: ${player.color}">
+                                ${player.avatar}
+                            </div>
+                            <span class="font-semibold text-xs">${player.name}</span>
+                        </div>
+                        <div class="text-xs text-gray-600">Pos: ${player.position}</div>
+                        <div class="text-xs text-gray-600">Markah: ${player.score}</div>
+                    `;
+                    
+                    fragmentMobile.appendChild(playerDiv);
+                });
+                containerMobile.innerHTML = '';
+                containerMobile.appendChild(fragmentMobile);
+            }
+            
+            // Update player tokens efficiently - batch DOM operations
+            const existingTokens = document.querySelectorAll('.player-token');
+            existingTokens.forEach(token => token.remove());
+            
+            // Batch token creation
+            const tokensToAdd = [];
+            players.forEach((player, index) => {
+                if (player.position > 0) {
+                    tokensToAdd.push({
+                        player,
+                        index,
+                        desktopSquare: document.getElementById(`square-${player.position}`),
+                        mobileSquare: document.getElementById(`square-mobile-${player.position}`)
+                    });
+                }
+            });
+            
+            // Add all tokens at once
+            tokensToAdd.forEach(({player, index, desktopSquare, mobileSquare}) => {
+                if (desktopSquare) {
+                    const token = document.createElement('div');
+                    token.className = 'player-token';
+                    token.style.cssText = `
+                        background-color: ${player.color};
+                        top: ${Math.floor(index / 5) * 12}px;
+                        left: ${(index % 5) * 12}px;
+                        transform: translateZ(0);
+                    `;
+                    token.textContent = player.avatar;
+                    desktopSquare.appendChild(token);
+                }
+                
+                if (mobileSquare) {
+                    const tokenMobile = document.createElement('div');
+                    tokenMobile.className = 'player-token';
+                    tokenMobile.style.cssText = `
+                        background-color: ${player.color};
+                        top: ${Math.floor(index / 5) * 8}px;
+                        left: ${(index % 5) * 8}px;
+                        transform: translateZ(0);
+                    `;
+                    tokenMobile.textContent = player.avatar;
+                    mobileSquare.appendChild(tokenMobile);
+                }
+            });
+        }
+
+        function updateCurrentPlayerDisplay() {
+            const currentPlayerDisplay = document.getElementById('current-player-display');
+            const currentPlayerMobile = document.getElementById('current-player-mobile');
+            
+            const text = `Giliran: ${players[currentPlayerIndex].name}`;
+            
+            if (currentPlayerDisplay) currentPlayerDisplay.textContent = text;
+            if (currentPlayerMobile) currentPlayerMobile.textContent = text;
+        }
+
+        let pendingDiceValue = 0; // Store dice value until question is answered
+        let activeTimeouts = []; // Track all active timeouts
+        let activeIntervals = []; // Track all active intervals
+        
+        // Helper function to manage timeouts
+        function managedSetTimeout(callback, delay) {
+            const timeoutId = setTimeout(() => {
+                callback();
+                // Remove from active timeouts when completed
+                activeTimeouts = activeTimeouts.filter(id => id !== timeoutId);
+            }, delay);
+            activeTimeouts.push(timeoutId);
+            return timeoutId;
+        }
+        
+        // Helper function to manage intervals
+        function managedSetInterval(callback, delay) {
+            const intervalId = setInterval(callback, delay);
+            activeIntervals.push(intervalId);
+            return intervalId;
+        }
+        
+        // Clear all timeouts and intervals
+        function clearAllTimeouts() {
+            activeTimeouts.forEach(id => clearTimeout(id));
+            activeIntervals.forEach(id => clearInterval(id));
+            activeTimeouts = [];
+            activeIntervals = [];
+        }
+
+        function rollDice() {
+            if (diceRolled || questionActive) return;
+            
+            // Play dice roll sound
+            soundManager.play('diceRoll');
+            
+            const dice = document.getElementById('dice');
+            const diceValue = document.getElementById('dice-value');
+            const rollBtn = document.getElementById('roll-btn');
+            const diceMobile = document.getElementById('dice-mobile');
+            const diceValueMobile = document.getElementById('dice-value-mobile');
+            const rollBtnMobile = document.getElementById('roll-btn-mobile');
+            
+            // Add rolling animation to both dice
+            if (dice) dice.classList.add('rolling');
+            if (diceMobile) diceMobile.classList.add('rolling');
+            
+            // Disable both buttons
+            if (rollBtn) rollBtn.disabled = true;
+            if (rollBtnMobile) rollBtnMobile.disabled = true;
+            
+            diceRolled = true;
+            
+            // Animate dice roll with optimized performance
+            let rollCount = 0;
+            const rollInterval = managedSetInterval(() => {
+                const randomValue = Math.floor(Math.random() * 6) + 1;
+                if (diceValue) diceValue.textContent = randomValue;
+                if (diceValueMobile) diceValueMobile.textContent = randomValue;
+                rollCount++;
+                
+                if (rollCount > 8) { // Reduced from 10 to 8 for faster animation
+                    clearInterval(rollInterval);
+                    // Remove from active intervals
+                    activeIntervals = activeIntervals.filter(id => id !== rollInterval);
+                    
+                    const finalValue = Math.floor(Math.random() * 6) + 1;
+                    pendingDiceValue = finalValue; // Store the dice value
+                    if (diceValue) diceValue.textContent = finalValue;
+                    if (diceValueMobile) diceValueMobile.textContent = finalValue;
+                    
+                    if (dice) dice.classList.remove('rolling');
+                    if (diceMobile) diceMobile.classList.remove('rolling');
+                    
+                    // Show question immediately after dice roll
+                    managedSetTimeout(() => {
+                        showQuestion();
+                    }, 300); // Reduced from 500ms to 300ms
+                }
+            }, 80); // Reduced from 100ms to 80ms
+        }
+
+        function movePlayer(steps) {
+            const player = players[currentPlayerIndex];
+            let newPosition = player.position + steps;
+            
+            // Play player move sound
+            soundManager.play('playerMove');
+            
+            // Check if player reaches or exceeds 100
+            if (newPosition >= 100) {
+                newPosition = 100;
+                player.position = newPosition;
+                updatePlayersDisplay();
+                showWinner(player.name);
+                return;
+            }
+            
+            player.position = newPosition;
+            updatePlayersDisplay();
+            
+            // Check for snakes and ladders with optimized timing
+            if (snakes[newPosition]) {
+                managedSetTimeout(() => {
+                    soundManager.play('snake'); // Play snake sound
+                    player.position = snakes[newPosition];
+                    updatePlayersDisplay();
+                    showMessage(`${player.name} terkena ular! 🐍 Turun ke ${snakes[newPosition]}`);
+                    // End turn after snake
+                    managedSetTimeout(() => {
+                        nextTurn();
+                    }, 800); // Reduced from 1500ms
+                }, 600); // Reduced from 1000ms
+            } else if (ladders[newPosition]) {
+                managedSetTimeout(() => {
+                    soundManager.play('ladder'); // Play ladder sound
+                    player.position = ladders[newPosition];
+                    updatePlayersDisplay();
+                    showMessage(`${player.name} naik tangga! 🪜 Naik ke ${ladders[newPosition]}`);
+                    // End turn after ladder
+                    managedSetTimeout(() => {
+                        nextTurn();
+                    }, 800); // Reduced from 1500ms
+                }, 600); // Reduced from 1000ms
+            } else {
+                // Normal move - end turn faster
+                managedSetTimeout(() => {
+                    nextTurn();
+                }, 800); // Reduced from 1500ms
+            }
+        }
+
+        function showQuestion() {
+            const question = questions[Math.floor(Math.random() * questions.length)];
+            questionActive = true;
+            
+            // Update popup question overlay
+            const questionTextPopup = document.getElementById('question-text-popup');
+            const arabicTextPopup = document.getElementById('arabic-text-popup');
+            const questionOverlay = document.getElementById('question-overlay');
+            const feedbackPopup = document.getElementById('feedback-popup');
+            const continueBtnPopup = document.getElementById('continue-btn-popup');
+            const currentPlayerQuestion = document.getElementById('current-player-question');
+            
+            if (questionTextPopup) questionTextPopup.textContent = question.question;
+            if (arabicTextPopup) arabicTextPopup.textContent = question.arabic;
+            if (feedbackPopup) feedbackPopup.classList.add('hidden');
+            if (continueBtnPopup) continueBtnPopup.classList.add('hidden');
+            if (currentPlayerQuestion) currentPlayerQuestion.textContent = `Giliran: ${players[currentPlayerIndex].name}`;
+            if (questionOverlay) questionOverlay.classList.remove('hidden');
+            
+            // Reset popup options
+            const optionsPopup = document.querySelectorAll('.option-btn-popup');
+            optionsPopup.forEach(btn => {
+                btn.disabled = false;
+                btn.className = btn.className.replace(/bg-\w+-\d+/g, '').replace(/hover:bg-\w+-\d+/g, '');
+                btn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                btn.onclick = () => handleAnswer(btn.dataset.answer, question);
+            });
+        }
+
+        function handleAnswer(selectedAnswer, question) {
+            const player = players[currentPlayerIndex];
+            const isCorrect = selectedAnswer === question.correct;
+            
+            // Handle popup options
+            const optionsPopup = document.querySelectorAll('.option-btn-popup');
+            const feedbackPopup = document.getElementById('feedback-popup');
+            const continueBtnPopup = document.getElementById('continue-btn-popup');
+            
+            optionsPopup.forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.answer === question.correct) {
+                    btn.className = btn.className.replace(/bg-\w+-\d+/g, '').replace(/hover:bg-\w+-\d+/g, '');
+                    btn.classList.add('bg-green-500');
+                } else if (btn.dataset.answer === selectedAnswer) {
+                    btn.className = btn.className.replace(/bg-\w+-\d+/g, '').replace(/hover:bg-\w+-\d+/g, '');
+                    btn.classList.add('bg-red-500');
+                } else {
+                    btn.className = btn.className.replace(/bg-\w+-\d+/g, '').replace(/hover:bg-\w+-\d+/g, '');
+                    btn.classList.add('bg-gray-400');
+                }
+            });
+            
+            let feedbackContent;
+            if (isCorrect) {
+                soundManager.play('correct'); // Play correct answer sound
+                player.score += 10;
+                feedbackContent = `<div class="bg-green-100 text-green-800 border border-green-300 rounded-xl p-3">
+                    <div class="font-bold text-lg">✅ Betul! +10 markah</div>
+                    <div class="text-sm mt-1">Anda boleh bergerak ${pendingDiceValue} langkah!</div>
+                    <p class="text-xs mt-2 text-gray-600">${question.explanation}</p>
+                </div>`;
+            } else {
+                soundManager.play('wrong'); // Play wrong answer sound
+                feedbackContent = `<div class="bg-red-100 text-red-800 border border-red-300 rounded-xl p-3">
+                    <div class="font-bold text-lg">❌ Salah!</div>
+                    <div class="text-sm mt-1">Anda tidak boleh bergerak. Giliran seterusnya!</div>
+                    <p class="text-xs mt-2 text-gray-600">${question.explanation}</p>
+                </div>`;
+            }
+            
+            if (feedbackPopup) {
+                feedbackPopup.innerHTML = feedbackContent;
+                feedbackPopup.classList.remove('hidden');
+            }
+            
+            if (continueBtnPopup) {
+                continueBtnPopup.classList.remove('hidden');
+                continueBtnPopup.onclick = () => {
+                    document.getElementById('question-overlay').classList.add('hidden');
+                    questionActive = false;
+                    if (isCorrect) {
+                        // Move player if answer is correct
+                        movePlayer(pendingDiceValue);
+                    } else {
+                        // Skip turn if answer is wrong
+                        nextTurn();
+                    }
+                };
+            }
+        }
+
+        function nextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            diceRolled = false;
+            
+            const rollBtn = document.getElementById('roll-btn');
+            const rollBtnMobile = document.getElementById('roll-btn-mobile');
+            
+            if (rollBtn) rollBtn.disabled = false;
+            if (rollBtnMobile) rollBtnMobile.disabled = false;
+            
+            updateCurrentPlayerDisplay();
+            updatePlayersDisplay();
+        }
+
+        function showMessage(message) {
+            // You can implement a toast notification here
+            console.log(message);
+        }
+
+        function showWinner(winnerName) {
+            // Play celebration sound
+            soundManager.play('celebration');
+            
+            document.getElementById('winner-name').textContent = winnerName;
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('winner-screen').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            soundManager.play('buttonClick'); // Play button click sound
+            
+            document.getElementById('winner-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+            players = [];
+            currentPlayerIndex = 0;
+            diceRolled = false;
+            questionActive = false;
+        }
+        
+        function toggleSound() {
+            const isMuted = soundManager.toggleMute();
+            const soundIcon = document.getElementById('sound-icon');
+            const soundText = document.getElementById('sound-text');
+            
+            if (isMuted) {
+                if (soundIcon) soundIcon.textContent = '🔇';
+                if (soundText) soundText.textContent = 'Senyap';
+            } else {
+                if (soundIcon) soundIcon.textContent = '🔊';
+                if (soundText) soundText.textContent = 'Bunyi';
+                // Play a test sound to confirm audio is working
+                soundManager.play('buttonClick');
+            }
+        }
+
+        function backToSetup() {
+            // Simple confirmation dialog
+            const userConfirmed = confirm('Adakah anda pasti ingin kembali ke menu utama? Permainan semasa akan dibatalkan.');
+            
+            if (userConfirmed) {
+                try {
+                    // Clear any intervals or timeouts first
+                    clearAllTimeouts();
+                    
+                    // Hide all screens immediately
+                    const gameScreen = document.getElementById('game-screen');
+                    const winnerScreen = document.getElementById('winner-screen');
+                    const questionOverlay = document.getElementById('question-overlay');
+                    const adminPanel = document.getElementById('admin-panel');
+                    const setupScreen = document.getElementById('setup-screen');
+                    
+                    if (gameScreen) gameScreen.classList.add('hidden');
+                    if (winnerScreen) winnerScreen.classList.add('hidden');
+                    if (questionOverlay) questionOverlay.classList.add('hidden');
+                    if (adminPanel) adminPanel.classList.add('hidden');
+                    if (setupScreen) setupScreen.classList.remove('hidden');
+                    
+                    // Reset all game state variables
+                    players = [];
+                    currentPlayerIndex = 0;
+                    diceRolled = false;
+                    questionActive = false;
+                    pendingDiceValue = 0;
+                    
+                    // Reset dice display to initial state
+                    const diceValue = document.getElementById('dice-value');
+                    const diceValueMobile = document.getElementById('dice-value-mobile');
+                    if (diceValue) diceValue.textContent = '🎲';
+                    if (diceValueMobile) diceValueMobile.textContent = '🎲';
+                    
+                    // Reset and re-enable roll buttons
+                    const rollBtn = document.getElementById('roll-btn');
+                    const rollBtnMobile = document.getElementById('roll-btn-mobile');
+                    if (rollBtn) {
+                        rollBtn.disabled = false;
+                        rollBtn.style.opacity = '1';
+                        rollBtn.classList.remove('rolling');
+                    }
+                    if (rollBtnMobile) {
+                        rollBtnMobile.disabled = false;
+                        rollBtnMobile.style.opacity = '1';
+                        rollBtnMobile.classList.remove('rolling');
+                    }
+                    
+                    // Reset dice elements
+                    const dice = document.getElementById('dice');
+                    const diceMobile = document.getElementById('dice-mobile');
+                    if (dice) dice.classList.remove('rolling');
+                    if (diceMobile) diceMobile.classList.remove('rolling');
+                    
+                    // Clear game boards completely
+                    const gameBoard = document.getElementById('game-board');
+                    const gameBoardMobile = document.getElementById('game-board-mobile');
+                    if (gameBoard) gameBoard.innerHTML = '';
+                    if (gameBoardMobile) gameBoardMobile.innerHTML = '';
+                    
+                    // Clear player lists
+                    const playersList = document.getElementById('players-list');
+                    const playersListMobile = document.getElementById('players-list-mobile');
+                    if (playersList) playersList.innerHTML = '';
+                    if (playersListMobile) playersListMobile.innerHTML = '';
+                    
+                    // Reset current player display
+                    const currentPlayerDisplay = document.getElementById('current-player-display');
+                    const currentPlayerMobile = document.getElementById('current-player-mobile');
+                    if (currentPlayerDisplay) currentPlayerDisplay.textContent = 'Giliran: Pemain 1';
+                    if (currentPlayerMobile) currentPlayerMobile.textContent = 'Giliran: Pemain 1';
+                    
+                    // Reset player setup inputs
+                    updatePlayerInputs();
+                    
+                    // Reset player count to default
+                    const playerCountSelect = document.getElementById('player-count');
+                    if (playerCountSelect && playerCountSelect.options.length > 0) {
+                        playerCountSelect.selectedIndex = 0;
+                        // Trigger change event to update player inputs
+                        playerCountSelect.dispatchEvent(new Event('change'));
+                    }
+                    
+                    console.log('Successfully returned to setup screen');
+                    
+                } catch (error) {
+                    console.error('Error in backToSetup:', error);
+                    // Force return to setup even if there's an error
+                    document.getElementById('game-screen').classList.add('hidden');
+                    document.getElementById('setup-screen').classList.remove('hidden');
+                }
+            }
+        }
+
+        // ===== ADMIN FUNCTIONS =====
+        
+        function showAdminLogin() {
+            document.getElementById('admin-login-screen').classList.remove('hidden');
+            document.getElementById('admin-username').focus();
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('admin-login-screen').classList.add('hidden');
+            document.getElementById('admin-login-error').classList.add('hidden');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+        }
+
+        function adminLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                closeAdminLogin();
+                showAdminPanel();
+            } else {
+                document.getElementById('admin-login-error').classList.remove('hidden');
+            }
+        }
+
+        function showAdminPanel() {
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            populateQuestionsList();
+            updateAdminStats();
+            loadGameSettings();
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+            cancelEdit();
+        }
+
+        function populateQuestionsList() {
+            const container = document.getElementById('questions-list');
+            container.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'p-3 bg-gray-50 rounded-lg border';
+                
+                questionDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-gray-800 mb-1">${question.question}</div>
+                            <div class="arabic-text text-lg text-gray-700 mb-1">${question.arabic}</div>
+                            <div class="text-xs text-gray-600">Jawapan: <span class="font-semibold">${getAnswerText(question.correct)}</span></div>
+                        </div>
+                        <div class="flex space-x-1 ml-2">
+                            <button onclick="editQuestion(${index})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">
+                                ✏️
+                            </button>
+                            <button onclick="deleteQuestion(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+            
+            document.getElementById('question-count').textContent = questions.length;
+        }
+
+        function getAnswerText(value) {
+            const answers = {
+                'mad-badal': 'Mad Badal',
+                'mad-silah': 'Mad Silah',
+                'mad-iwad': 'Mad Iwad',
+                'bukan-mad': 'Bukan Mad'
+            };
+            return answers[value] || value;
+        }
+
+        function saveQuestion() {
+            const question = document.getElementById('question-input').value.trim();
+            const arabic = document.getElementById('arabic-input').value.trim();
+            const correct = document.getElementById('correct-answer').value;
+            const explanation = document.getElementById('explanation-input').value.trim();
+            
+            if (!question || !arabic || !explanation) {
+                alert('Sila isi semua medan!');
+                return;
+            }
+            
+            const questionObj = {
+                question: question,
+                arabic: arabic,
+                correct: correct,
+                explanation: explanation
+            };
+            
+            if (editingQuestionIndex >= 0) {
+                // Update existing question
+                questions[editingQuestionIndex] = questionObj;
+                editingQuestionIndex = -1;
+                document.getElementById('question-form-title').textContent = 'Tambah Soalan Baru';
+                document.getElementById('save-btn-text').textContent = '💾 Simpan';
+                document.getElementById('cancel-edit-btn').classList.add('hidden');
+            } else {
+                // Add new question
+                questions.push(questionObj);
+            }
+            
+            // Clear form
+            document.getElementById('question-input').value = '';
+            document.getElementById('arabic-input').value = '';
+            document.getElementById('correct-answer').value = 'mad-badal';
+            document.getElementById('explanation-input').value = '';
+            
+            populateQuestionsList();
+            updateAdminStats();
+        }
+
+        function editQuestion(index) {
+            const question = questions[index];
+            editingQuestionIndex = index;
+            
+            document.getElementById('question-input').value = question.question;
+            document.getElementById('arabic-input').value = question.arabic;
+            document.getElementById('correct-answer').value = question.correct;
+            document.getElementById('explanation-input').value = question.explanation;
+            
+            document.getElementById('question-form-title').textContent = 'Edit Soalan';
+            document.getElementById('save-btn-text').textContent = '💾 Kemaskini';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+        }
+
+        function cancelEdit() {
+            editingQuestionIndex = -1;
+            document.getElementById('question-form-title').textContent = 'Tambah Soalan Baru';
+            document.getElementById('save-btn-text').textContent = '💾 Simpan';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            
+            // Clear form
+            document.getElementById('question-input').value = '';
+            document.getElementById('arabic-input').value = '';
+            document.getElementById('correct-answer').value = 'mad-badal';
+            document.getElementById('explanation-input').value = '';
+        }
+
+        function deleteQuestion(index) {
+            if (confirm('Adakah anda pasti ingin memadam soalan ini?')) {
+                questions.splice(index, 1);
+                populateQuestionsList();
+                updateAdminStats();
+                
+                if (editingQuestionIndex === index) {
+                    cancelEdit();
+                } else if (editingQuestionIndex > index) {
+                    editingQuestionIndex--;
+                }
+            }
+        }
+
+        function saveGameSettings() {
+            const minPlayers = parseInt(document.getElementById('min-players').value);
+            const maxPlayers = parseInt(document.getElementById('max-players').value);
+            
+            if (minPlayers >= maxPlayers) {
+                alert('Bilangan pemain minimum mesti kurang daripada maksimum!');
+                return;
+            }
+            
+            if (minPlayers < 2 || maxPlayers > 10) {
+                alert('Bilangan pemain mesti antara 2 hingga 10!');
+                return;
+            }
+            
+            gameSettings.minPlayers = minPlayers;
+            gameSettings.maxPlayers = maxPlayers;
+            
+            updateAdminStats();
+            updatePlayerCountOptions();
+            alert('Tetapan permainan telah disimpan!');
+        }
+
+        function loadGameSettings() {
+            document.getElementById('min-players').value = gameSettings.minPlayers;
+            document.getElementById('max-players').value = gameSettings.maxPlayers;
+        }
+
+        function updateAdminStats() {
+            document.getElementById('total-questions').textContent = questions.length;
+            document.getElementById('current-min-players').textContent = gameSettings.minPlayers;
+            document.getElementById('current-max-players').textContent = gameSettings.maxPlayers;
+        }
+
+        function updatePlayerCountOptions() {
+            const select = document.getElementById('player-count');
+            select.innerHTML = '';
+            
+            for (let i = gameSettings.minPlayers; i <= gameSettings.maxPlayers; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `${i} Pemain`;
+                select.appendChild(option);
+            }
+        }
+
+        function exportQuestions() {
+            const dataStr = JSON.stringify(questions, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'soalan-tajwid.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function resetToDefault() {
+            if (confirm('Adakah anda pasti ingin reset semua soalan dan tetapan ke default? Tindakan ini tidak boleh dibatalkan!')) {
+                // Reset questions to default
+                questions = [
+                    {
+                        question: "Apakah jenis mad dalam ayat berikut?",
+                        arabic: "وَالسَّمَآءِ",
+                        correct: "mad-badal",
+                        explanation: "Mad Badal berlaku apabila hamzah bertemu dengan alif mad."
+                    },
+                    {
+                        question: "Kenalpasti jenis mad dalam perkataan ini:",
+                        arabic: "فِيهِ هُدًى",
+                        correct: "mad-silah",
+                        explanation: "Mad Silah berlaku pada huruf ha dhamir yang disambung."
+                    },
+                    {
+                        question: "Apakah mad yang terdapat dalam ayat ini?",
+                        arabic: "وَلَا الضَّآلِّينَ",
+                        correct: "mad-badal",
+                        explanation: "Mad Badal berlaku dalam perkataan 'الضآلين'."
+                    },
+                    {
+                        question: "Jenis mad apakah yang terdapat di sini?",
+                        arabic: "قَالُوا۟ ءَامَنَّا",
+                        correct: "mad-badal",
+                        explanation: "Mad Badal berlaku pada 'ءامنا'."
+                    },
+                    {
+                        question: "Kenalpasti mad dalam ayat berikut:",
+                        arabic: "لَهُ ٱلْمُلْكُ",
+                        correct: "mad-silah",
+                        explanation: "Mad Silah berlaku pada 'لهُ'."
+                    },
+                    {
+                        question: "Apakah jenis mad yang ada dalam perkataan ini?",
+                        arabic: "جَآءَ",
+                        correct: "mad-badal",
+                        explanation: "Mad Badal berlaku dalam 'جاء'."
+                    },
+                    {
+                        question: "Mad apakah yang terdapat di sini?",
+                        arabic: "عَلَيْهِ ٱللَّهُ",
+                        correct: "mad-silah",
+                        explanation: "Mad Silah berlaku pada 'عليهِ'."
+                    },
+                    {
+                        question: "Kenalpasti jenis mad dalam ayat ini:",
+                        arabic: "سُوٓءً۬ا",
+                        correct: "mad-iwad",
+                        explanation: "Mad Iwad berlaku pada wakaf."
+                    },
+                    {
+                        question: "Apakah mad yang terdapat dalam perkataan berikut?",
+                        arabic: "شَيْـًٔا",
+                        correct: "mad-iwad",
+                        explanation: "Mad Iwad berlaku pada wakaf."
+                    },
+                    {
+                        question: "Jenis mad apakah ini?",
+                        arabic: "رَءُوفٌ",
+                        correct: "mad-badal",
+                        explanation: "Mad Badal berlaku dalam 'رءوف'."
+                    }
+                ];
+                
+                // Reset game settings
+                gameSettings = {
+                    minPlayers: 2,
+                    maxPlayers: 10
+                };
+                
+                populateQuestionsList();
+                updateAdminStats();
+                loadGameSettings();
+                updatePlayerCountOptions();
+                cancelEdit();
+                
+                alert('Semua data telah di-reset ke default!');
+            }
+        }
+
+        // Add keyboard support for admin login
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const adminLoginScreen = document.getElementById('admin-login-screen');
+                if (!adminLoginScreen.classList.contains('hidden')) {
+                    adminLogin();
+                }
+            }
+        });
+
+        // Throttled update function
+        const throttledUpdatePlayersDisplay = throttle(updatePlayersDisplay, 100);
+
+        // Optimize scroll performance
+        document.addEventListener('scroll', function() {
+            // Minimal scroll handling
+        }, { passive: true });
+
+        document.addEventListener('touchstart', function() {
+            // Minimal touch handling
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function() {
+            // Minimal touch handling
+        }, { passive: true });
+
+        // Initialize
+        document.getElementById('player-count').addEventListener('change', updatePlayerInputs);
+        updatePlayerCountOptions();
+        updatePlayerInputs();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969c06dad3c9a84d',t:'MTc1NDI4OTI0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
 
